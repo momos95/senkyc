@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: senkyc-api
+  datasource:
+    url: ${SENKYC_DB_URL:jdbc:postgresql://localhost:5432/senkyc}
+    username: ${SENKYC_DB_USERNAME:senkyc}
+    # Pas de valeur par défaut : le démarrage échoue si le secret n'est pas fourni.
+    password: ${SENKYC_DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+server:
+  port: 8080
+  shutdown: graceful
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      # Les détails des composants ne sont jamais exposés par défaut.
+      show-details: ${SENKYC_HEALTH_DETAILS:never}
+      group:
+        readiness:
+          include: readinessState,db,aiService
+
+senkyc:
+  ai:
+    base-url: ${SENKYC_AI_BASE_URL:http://localhost:8000}
+    # Pas de valeur par défaut : secret partagé avec le service IA.
+    internal-token: ${SENKYC_AI_INTERNAL_TOKEN}
+    connect-timeout: 2s
+    read-timeout: 5s
+
+logging:
+  pattern:
+    level: "%5p [%X{correlationId:-}]"

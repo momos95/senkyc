@@ -1,0 +1,75 @@
+stages:
+  - test
+  - build
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+cache:
+  key: maven
+  paths:
+    - .m2/repository
+
+java:
+  stage: test
+  image: maven:3.9-eclipse-temurin-21
+  services:
+    - name: docker:dind
+      command: ["--tls=false"]
+  variables:
+    # Testcontainers s'appuie sur le démon dind.
+    DOCKER_HOST: tcp://docker:2375
+    TESTCONTAINERS_HOST_OVERRIDE: docker
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - mvn -B -ntp verify
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - "**/target/surefire-reports/TEST-*.xml"
+        - "**/target/failsafe-reports/TEST-*.xml"
+
+python:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - cd apps/senkyc-ai
+    - pip install ".[dev]"
+    - ruff check .
+    - pytest -q
+
+compose-config:
+  stage: test
+  image: docker:cli
+  variables:
+    # Valeurs factices : seule la syntaxe du fichier est validée ici.
+    POSTGRES_PASSWORD: ci
+    KEYCLOAK_DB_PASSWORD: ci
+    KEYCLOAK_ADMIN_PASSWORD: ci
+    PARTNER_DEMO_CLIENT_SECRET: ci
+    MINIO_ROOT_PASSWORD: ci
+    SENKYC_AI_INTERNAL_TOKEN: ci
+  script:
+    - docker compose config --quiet
+
+docker-images:
+  stage: build
+  image: docker:cli
+  services:
+    - docker:dind
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - docker build -f apps/senkyc-api/Dockerfile -t senkyc-api:$CI_COMMIT_SHORT_SHA .
+    - docker build -t senkyc-ai:$CI_COMMIT_SHORT_SHA apps/senkyc-ai
+
+# Analyse SonarQube : activée uniquement si SONAR_HOST_URL et SONAR_TOKEN sont définis.
+sonarqube:
+  stage: build
+  image: maven:3.9-eclipse-temurin-21
+  rules:
+    - if: $SONAR_HOST_URL && $SONAR_TOKEN
+  allow_failure: true
+  script:
+    - mvn -B -ntp verify sonar:sonar -Dsonar.projectKey=senkyc -DskipITs

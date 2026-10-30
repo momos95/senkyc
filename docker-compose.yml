@@ -1,0 +1,125 @@
+# Environnement de DÉVELOPPEMENT. Pas pour la production (Keycloak en start-dev, ports de debug).
+# Prérequis : ./scripts/init-env.sh  (génère .env avec des secrets aléatoires)
+name: senkyc
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-senkyc}
+      POSTGRES_USER: ${POSTGRES_USER:-senkyc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Lancer ./scripts/init-env.sh}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Lancer ./scripts/init-env.sh}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/docker/postgres/10-create-keycloak-db.sh:/docker-entrypoint-initdb.d/10-create-keycloak-db.sh:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Lancer ./scripts/init-env.sh}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Lancer ./scripts/init-env.sh}
+      KC_HEALTH_ENABLED: "true"
+      # Substitué par Keycloak dans infra/keycloak/realm-senkyc.json (${PARTNER_DEMO_CLIENT_SECRET})
+      PARTNER_DEMO_CLIENT_SECRET: ${PARTNER_DEMO_CLIENT_SECRET:?Lancer ./scripts/init-env.sh}
+    volumes:
+      - ./infra/keycloak/realm-senkyc.json:/opt/keycloak/data/import/realm-senkyc.json:ro
+    ports:
+      - "127.0.0.1:8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # L'image Keycloak n'embarque pas curl : requête HTTP via /dev/tcp sur le port de management.
+      test:
+        - CMD-SHELL
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          grep -q '"status": "UP"' <&3
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  minio:
+    # Épinglé sur la dernière image communautaire connue ; voir docs/adr/0007-stockage-objets.md.
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-senkyc-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Lancer ./scripts/init-env.sh}
+    volumes:
+      - miniodata:/data
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio-init:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-senkyc-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Lancer ./scripts/init-env.sh}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
+        mc mb --ignore-existing local/senkyc-documents &&
+        mc anonymous set none local/senkyc-documents
+    restart: "no"
+
+  senkyc-ai:
+    build:
+      context: ./apps/senkyc-ai
+    environment:
+      SENKYC_AI_INTERNAL_TOKEN: ${SENKYC_AI_INTERNAL_TOKEN:?Lancer ./scripts/init-env.sh}
+    # Pas de port publié : joignable uniquement depuis le réseau Compose.
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  senkyc-api:
+    build:
+      context: .
+      dockerfile: apps/senkyc-api/Dockerfile
+    environment:
+      SENKYC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-senkyc}
+      SENKYC_DB_USERNAME: ${POSTGRES_USER:-senkyc}
+      SENKYC_DB_PASSWORD: ${POSTGRES_PASSWORD:?Lancer ./scripts/init-env.sh}
+      SENKYC_AI_BASE_URL: http://senkyc-ai:8000
+      SENKYC_AI_INTERNAL_TOKEN: ${SENKYC_AI_INTERNAL_TOKEN:?Lancer ./scripts/init-env.sh}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      senkyc-ai:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  miniodata:
