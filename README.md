@@ -88,5 +88,6 @@ Une version plus récente de Testcontainers corrige le problème à la source ; 
 
 ## Licence
 
-À confirmer par les mainteneurs (fichier `LICENSE` à ajouter avant toute publication). Les licences des
-modèles IA (code **et** poids) devront être vérifiées séparément avant leur intégration (semaines 4-7).
+[Apache License 2.0](LICENSE). Les licences des modèles IA (code **et** poids préentraînés) et de leurs
+dépendances devront être vérifiées séparément avant leur intégration (semaines 4-7) : elles peuvent
+différer de celle du projet.
