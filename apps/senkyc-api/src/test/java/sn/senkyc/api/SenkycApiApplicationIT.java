@@ -25,11 +25,12 @@ import sn.senkyc.api.platform.ai.AiServiceClient;
 import sn.senkyc.api.platform.ai.AiServiceInfo;
 
 /**
- * Test d'intégration avec un vrai PostgreSQL (Testcontainers). Ignoré automatiquement si Docker
- * n'est pas disponible. Le service IA est simulé : l'appel HTTP réel est couvert par
+ * Test d'intégration avec un vrai PostgreSQL (Testcontainers). Docker est requis et son absence
+ * fait échouer le test (jamais d'ignorance silencieuse) ; {@code mvn test} n'exécute que les tests
+ * unitaires. Le service IA est simulé : l'appel HTTP réel est couvert par
  * {@code RestAiServiceClientTest} et par la vérification Compose.
  */
-@Testcontainers(disabledWithoutDocker = true)
+@Testcontainers
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {

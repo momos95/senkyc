@@ -39,26 +39,47 @@ docker compose exec senkyc-ai python -c "import urllib.request;print(urllib.requ
 
 Pour voir le détail des composants, démarrer l'API avec `SENKYC_HEALTH_DETAILS=always` (jamais en production).
 
-## Développer sans conteneur pour l'API
+## Développer sans Docker (API + service IA)
+
+Prérequis : un PostgreSQL local (créer la base et le rôle `senkyc`).
 
 ```bash
-# Le service IA n'est pas publié par défaut : créer un docker-compose.override.yml local (non versionné) contenant
-#   services: { senkyc-ai: { ports: ["127.0.0.1:8000:8000"] } }
-docker compose up -d postgres senkyc-ai
-set -a; . ./.env; set +a
-export SENKYC_DB_PASSWORD="$POSTGRES_PASSWORD"
-export SENKYC_AI_BASE_URL=http://localhost:8000
-export SENKYC_AI_INTERNAL_TOKEN                   # déjà chargé depuis .env
-mvn -pl apps/senkyc-api -am spring-boot:run
+# Terminal 1 : service IA (Python >= 3.11)
+cd apps/senkyc-ai
+python -m venv .venv && source .venv/bin/activate   # Windows : .venv\Scripts\activate
+pip install .
+export SENKYC_AI_INTERNAL_TOKEN=$(openssl rand -hex 16)   # Windows : set SENKYC_AI_INTERNAL_TOKEN=...
+uvicorn senkyc_ai.main:create_app --factory --port 8000
+
+# Terminal 2 : API (même jeton)
+export SENKYC_DB_PASSWORD=...                       # mot de passe du rôle senkyc
+export SENKYC_AI_INTERNAL_TOKEN=...                 # identique au terminal 1
+mvn -B -pl apps/senkyc-api -am -DskipTests install
+cd apps/senkyc-api && mvn spring-boot:run
+
+curl http://localhost:8080/actuator/health/readiness   # {"status":"UP"}
 ```
 
 ## Tests
 
 ```bash
-mvn -B verify                                     # Java : unitaires (surefire) + intégration (failsafe, Testcontainers : Docker requis, sinon ignorés)
+mvn -B test                                       # Java : tests unitaires uniquement (sans Docker)
+mvn -B verify                                     # + tests d'intégration (Testcontainers : Docker requis, échec sinon)
 cd apps/senkyc-ai && pip install ".[dev]" && ruff check . && pytest
 docker compose config --quiet                     # validation de la syntaxe Compose
 ```
+
+### Dépannage : `BadRequestException (Status 400)` dans Testcontainers
+
+Docker Engine 29 refuse les clients utilisant une ancienne version de l'API, ce qui peut casser
+Testcontainers 1.21.3 (« Could not find a valid Docker environment »). Contournement local :
+
+```bash
+echo "api.version=1.44" > ~/.docker-java.properties     # Windows : %USERPROFILE%\.docker-java.properties
+```
+
+Une version plus récente de Testcontainers corrige le problème à la source ; à valider avec
+`mvn -Dtestcontainers.version=<version> verify` avant de modifier le `pom.xml`.
 
 ## Documentation
 
