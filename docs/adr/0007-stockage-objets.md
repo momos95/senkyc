@@ -7,6 +7,9 @@ Les images (CNI, selfies) sont stockées dans un bucket privé S3-compatible, ch
 (clé référencée par `encryption_key_id`, semaine 3). Le code n'utilise que l'API S3 : le fournisseur
 reste interchangeable.
 
+## Constat du 3 novembre 2026
+Le tirage de `quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z` échoue (HTTP 401) : l'image épinglée n'est plus accessible, de même que `quay.io/minio/mc`. Les services `minio` et `minio-init` sont donc placés dans le profil Compose `storage`, désactivé par défaut. Le choix du remplaçant S3-compatible (Garage, SeaweedFS, RustFS, S3 managé) sera fait en semaine 3, avec un test d'intégration.
+
 ## Point de vigilance (à vérifier par l'équipe)
 La distribution des images Docker de MinIO Community a évolué fin 2025 (à ma connaissance, non
 revérifié ici faute d'accès réseau). L'image est donc **épinglée** sur une release datée connue.

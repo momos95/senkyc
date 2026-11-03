@@ -54,8 +54,11 @@ services:
       retries: 20
       start_period: 40s
 
+  # Stockage objet : OPTIONNEL en semaine 1 (aucun code ne l'utilise encore).
+  # Démarrer avec : docker compose --profile storage up -d
+  # L'image quay.io/minio/minio épinglée est devenue inaccessible (401) : voir docs/adr/0007-stockage-objets.md.
   minio:
-    # Épinglé sur la dernière image communautaire connue ; voir docs/adr/0007-stockage-objets.md.
+    profiles: ["storage"]
     image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
     command: ["server", "/data", "--console-address", ":9001"]
     environment:
@@ -73,6 +76,7 @@ services:
       retries: 10
 
   minio-init:
+    profiles: ["storage"]
     image: quay.io/minio/mc:latest
     depends_on:
       minio:

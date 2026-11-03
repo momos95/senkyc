@@ -26,7 +26,7 @@ docker compose ps                  # attendre « healthy »
 |---|---|
 | API | http://localhost:8080/actuator/health |
 | Keycloak | http://localhost:8081 (admin : voir `.env`) |
-| MinIO console | http://localhost:9001 |
+| MinIO console | optionnel, profil `storage` (image actuellement inaccessible, voir ADR 0007) |
 | PostgreSQL | localhost:5432 |
 | Service IA | non publié (réseau Compose uniquement) |
 
