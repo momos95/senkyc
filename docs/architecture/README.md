@@ -112,7 +112,9 @@ Voir [ADR 0003](../adr/0003-service-ia-http-interne.md). Résumé :
 | Correlation ID validé (anti-injection de logs) | en place + testé |
 | `toString()` masquant jeton et données personnelles | en place + testé |
 | Conteneurs non-root, ports sensibles liés à 127.0.0.1, service IA non publié | en place |
-| OAuth2, RLS multi-tenant, chiffrement des objets, rate limiting | semaines 2-3 |
+| OAuth2 resource server (signature, `iss`, `aud`, expiration, `tenant_id`), autorisation par rôle/scope | en place, tests écrits ; **non exécutés** au moment de l'écriture |
+| RLS PostgreSQL + rôle applicatif sans DDL, journal d'audit en ajout seul | en place, tests d'intégration écrits ; **non exécutés** au moment de l'écriture |
+| Chiffrement des objets, rate limiting | semaines 3+ |
 
 La conformité réglementaire (données personnelles, biométrie) **n'est pas acquise** par ces mesures
 techniques ; la documentation dédiée sera produite et devra être revue par un juriste/DPO.

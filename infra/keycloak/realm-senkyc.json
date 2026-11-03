@@ -7,8 +7,14 @@
   "accessTokenLifespan": 300,
   "roles": {
     "realm": [
-      { "name": "senkyc-admin", "description": "Administration de la plateforme SenKYC" },
-      { "name": "kyc-partner", "description": "Partenaire intégrateur (client credentials)" }
+      {
+        "name": "senkyc-admin",
+        "description": "Administration de la plateforme SenKYC"
+      },
+      {
+        "name": "kyc-partner",
+        "description": "Partenaire intégrateur (client credentials)"
+      }
     ]
   },
   "clients": [
@@ -38,6 +44,43 @@
             "id.token.claim": "false",
             "userinfo.token.claim": "false"
           }
+        },
+        {
+          "name": "api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "senkyc-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "platform-admin",
+      "name": "Administration plateforme (DEV UNIQUEMENT)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${PLATFORM_ADMIN_CLIENT_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "senkyc-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
         }
       ]
     }
@@ -47,7 +90,17 @@
       "username": "service-account-partner-demo",
       "enabled": true,
       "serviceAccountClientId": "partner-demo",
-      "realmRoles": ["kyc-partner"]
+      "realmRoles": [
+        "kyc-partner"
+      ]
+    },
+    {
+      "username": "service-account-platform-admin",
+      "enabled": true,
+      "serviceAccountClientId": "platform-admin",
+      "realmRoles": [
+        "senkyc-admin"
+      ]
     }
   ]
 }

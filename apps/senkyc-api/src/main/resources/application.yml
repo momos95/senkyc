@@ -3,7 +3,8 @@ spring:
     name: senkyc-api
   datasource:
     url: ${SENKYC_DB_URL:jdbc:postgresql://localhost:5432/senkyc}
-    username: ${SENKYC_DB_USERNAME:senkyc}
+    # Compte APPLICATIF (senkyc_app) : sans droit DDL, soumis à la RLS.
+    username: ${SENKYC_DB_USERNAME:senkyc_app}
     # Pas de valeur par défaut : le démarrage échoue si le secret n'est pas fourni.
     password: ${SENKYC_DB_PASSWORD}
   jpa:
@@ -12,6 +13,15 @@ spring:
       ddl-auto: validate
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
+    # Compte de MIGRATION (propriétaire du schéma), distinct du compte applicatif.
+    url: ${SENKYC_DB_URL:jdbc:postgresql://localhost:5432/senkyc}
+    user: ${SENKYC_MIGRATION_DB_USERNAME:senkyc}
+    password: ${SENKYC_MIGRATION_DB_PASSWORD}
+    # "prod" par défaut : les données de démo (contexte "dev") ne sont jamais appliquées par accident.
+    contexts: ${SENKYC_LIQUIBASE_CONTEXTS:prod}
+  mvc:
+    problemdetails:
+      enabled: true
 
 server:
   port: 8080
@@ -38,6 +48,13 @@ management:
           include: readinessState,db,aiService
 
 senkyc:
+  security:
+    jwt:
+      # Valeur attendue du claim "iss" (URL publique de Keycloak).
+      issuer: ${SENKYC_JWT_ISSUER:http://localhost:8081/realms/senkyc}
+      # URL des clés de signature (peut être interne au réseau Docker).
+      jwk-set-uri: ${SENKYC_JWT_JWK_SET_URI:http://localhost:8081/realms/senkyc/protocol/openid-connect/certs}
+      audience: ${SENKYC_JWT_AUDIENCE:senkyc-api}
   ai:
     base-url: ${SENKYC_AI_BASE_URL:http://localhost:8000}
     # Pas de valeur par défaut : secret partagé avec le service IA.

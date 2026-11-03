@@ -37,11 +37,31 @@ curl -s http://localhost:8080/actuator/health/readiness   # db + aiService doive
 docker compose exec senkyc-ai python -c "import urllib.request;print(urllib.request.urlopen('http://127.0.0.1:8000/health').read())"
 ```
 
+### Obtenir un jeton et appeler l'API (DEV)
+
+Les secrets sont dans `.env`. Après la mise à jour de la semaine 2, relancer `./scripts/init-env.sh`
+(il n'ajoute que les variables manquantes), puis `docker compose down -v` : les rôles PostgreSQL et le
+realm ne sont créés qu'à l'initialisation des volumes (**efface les données de dev**).
+
+```bash
+# Jeton du partenaire de démo (tenant demo-a) ; remplacer <secret> par PARTNER_DEMO_CLIENT_SECRET
+curl -s -X POST http://localhost:8081/realms/senkyc/protocol/openid-connect/token \
+  -d grant_type=client_credentials -d client_id=partner-demo -d client_secret=<secret>
+# Puis (access_token dans la réponse) :
+curl -s -H "Authorization: Bearer <access_token>" http://localhost:8080/api/v1/tenant
+```
+
+Administration plateforme : même requête avec `client_id=platform-admin` et `PLATFORM_ADMIN_CLIENT_SECRET`,
+puis `GET /api/v1/admin/tenants`. Le jeton partenaire doit y recevoir 403.
+
 Pour voir le détail des composants, démarrer l'API avec `SENKYC_HEALTH_DETAILS=always` (jamais en production).
 
 ## Développer sans Docker (API + service IA)
 
-Prérequis : un PostgreSQL local (créer la base et le rôle `senkyc`).
+Prérequis : un PostgreSQL local (créer la base, le rôle propriétaire `senkyc` pour les migrations et un
+rôle `senkyc_app` avec `LOGIN`), ainsi qu'un Keycloak joignable ou un jeton équivalent (JWKS configurable
+via `SENKYC_JWT_*`). Variables : `SENKYC_DB_PASSWORD` (rôle `senkyc_app`), `SENKYC_MIGRATION_DB_PASSWORD`
+(rôle `senkyc`).
 
 ```bash
 # Terminal 1 : service IA (Python >= 3.11)
@@ -52,7 +72,8 @@ export SENKYC_AI_INTERNAL_TOKEN=$(openssl rand -hex 16)   # Windows : set SENKYC
 uvicorn senkyc_ai.main:create_app --factory --port 8000
 
 # Terminal 2 : API (même jeton)
-export SENKYC_DB_PASSWORD=...                       # mot de passe du rôle senkyc
+export SENKYC_DB_PASSWORD=...                       # mot de passe du rôle senkyc_app
+export SENKYC_MIGRATION_DB_PASSWORD=...             # mot de passe du rôle senkyc (migrations)
 export SENKYC_AI_INTERNAL_TOKEN=...                 # identique au terminal 1
 mvn -B -pl apps/senkyc-api -am -DskipTests install
 cd apps/senkyc-api && mvn spring-boot:run
