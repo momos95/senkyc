@@ -48,7 +48,10 @@ compose-config:
     KEYCLOAK_DB_PASSWORD: ci
     KEYCLOAK_ADMIN_PASSWORD: ci
     PARTNER_DEMO_CLIENT_SECRET: ci
-    MINIO_ROOT_PASSWORD: ci
+    PLATFORM_ADMIN_CLIENT_SECRET: ci
+    SENKYC_APP_DB_PASSWORD: ci
+    STORAGE_ACCESS_KEY: ci
+    STORAGE_SECRET_KEY: ci
     SENKYC_AI_INTERNAL_TOKEN: ci
   script:
     - docker compose config --quiet

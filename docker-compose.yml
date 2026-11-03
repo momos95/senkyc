@@ -56,43 +56,24 @@ services:
       retries: 20
       start_period: 40s
 
-  # Stockage objet : OPTIONNEL en semaine 1 (aucun code ne l'utilise encore).
+  # Stockage objet S3 compatible (RustFS, Apache-2.0), OPTIONNEL : aucun code ne l'utilise encore.
   # Démarrer avec : docker compose --profile storage up -d
-  # L'image quay.io/minio/minio épinglée est devenue inaccessible (401) : voir docs/adr/0007-stockage-objets.md.
-  minio:
+  # Image épinglée par digest (version 1.0.4 d'après ses labels). MinIO a été écarté : voir docs/adr/0007-stockage-objets.md.
+  # Sans RUSTFS_ACCESS_KEY / RUSTFS_SECRET_KEY, RustFS démarrerait avec rustfsadmin/rustfsadmin : d'où le ":?" bloquant.
+  rustfs:
     profiles: ["storage"]
-    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
-    command: ["server", "/data", "--console-address", ":9001"]
+    image: rustfs/rustfs@sha256:ed9210d6411d77ffceb70d94b964a3cb7d225983368bc25bebe01e995293dcc2
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-senkyc-minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Lancer ./scripts/init-env.sh}
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:?Lancer ./scripts/init-env.sh}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:?Lancer ./scripts/init-env.sh}
+      # Valeur par défaut de l'image : "*" ; restreinte à la console locale.
+      RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: http://localhost:9001
     volumes:
-      - miniodata:/data
+      - rustfsdata:/data
     ports:
       - "127.0.0.1:9000:9000"
       - "127.0.0.1:9001:9001"
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  minio-init:
-    profiles: ["storage"]
-    image: quay.io/minio/mc:latest
-    depends_on:
-      minio:
-        condition: service_healthy
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-senkyc-minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Lancer ./scripts/init-env.sh}
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - >-
-        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
-        mc mb --ignore-existing local/senkyc-documents &&
-        mc anonymous set none local/senkyc-documents
-    restart: "no"
+    # Pas de healthcheck : l'image n'en fournit pas et les outils disponibles dedans ne sont pas vérifiés.
 
   senkyc-ai:
     build:
@@ -137,4 +118,4 @@ services:
 
 volumes:
   pgdata:
-  miniodata:
+  rustfsdata:

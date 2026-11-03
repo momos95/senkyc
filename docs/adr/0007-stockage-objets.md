@@ -1,17 +1,28 @@
-# ADR 0007 — Stockage objet S3-compatible (MinIO en développement)
+# ADR 0007 — Stockage objet S3-compatible (RustFS en développement)
 
-- Statut : accepté ; point de vigilance ouvert
+- Statut : accepté (remplace MinIO) ; à valider à l'usage
 
 ## Décision
 Les images (CNI, selfies) sont stockées dans un bucket privé S3-compatible, chiffrées côté application
 (clé référencée par `encryption_key_id`, semaine 3). Le code n'utilise que l'API S3 : le fournisseur
-reste interchangeable.
+reste interchangeable (RustFS, Garage, SeaweedFS, S3 managé). Le chiffrement ne dépend pas du serveur.
 
-## Constat du 3 novembre 2026
-Le tirage de `quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z` échoue (HTTP 401) : l'image épinglée n'est plus accessible, de même que `quay.io/minio/mc`. Les services `minio` et `minio-init` sont donc placés dans le profil Compose `storage`, désactivé par défaut. Le choix du remplaçant S3-compatible (Garage, SeaweedFS, RustFS, S3 managé) sera fait en semaine 3, avec un test d'intégration.
+## Pourquoi pas MinIO
+Les images Docker communautaires ont été arrêtées (le tirage de l'image épinglée renvoyait 401 le
+3 novembre 2026) et, selon des sources tierces non vérifiées auprès de MinIO, le dépôt est archivé.
 
-## Point de vigilance (à vérifier par l'équipe)
-La distribution des images Docker de MinIO Community a évolué fin 2025 (à ma connaissance, non
-revérifié ici faute d'accès réseau). L'image est donc **épinglée** sur une release datée connue.
-Avant toute mise en production, confirmer la disponibilité/licence (AGPLv3) et envisager une
-alternative S3 (Garage, SeaweedFS, S3 managé).
+## Choix de développement : RustFS
+- Licence Apache-2.0 (label de l'image et page du projet), compatible avec la nôtre.
+- Image `rustfs/rustfs` tirée avec succès le 3 novembre 2026 ; version 1.0.4 d'après ses labels ;
+  épinglée par digest dans `docker-compose.yml`.
+- Alternatives évaluées sur sources secondaires : Garage (AGPLv3, compatibilité S3 plus limitée),
+  SeaweedFS (plus de composants).
+
+## Réserves
+- Projet jeune (1.0.x), certaines fonctions marquées « Preview » ; compatibilité S3 « sous-ensemble testé ».
+  Aucune conformité S3 complète n'est supposée : le test d'intégration de l'adaptateur la vérifiera pour
+  ce dont SenKYC a besoin.
+- Sans identifiants fournis, RustFS démarre avec `rustfsadmin` / `rustfsadmin` : le Compose exige
+  `STORAGE_ACCESS_KEY` et `STORAGE_SECRET_KEY` (démarrage bloqué sinon).
+- Aucun healthcheck dans l'image ; aucun n'est inventé.
+- Le choix pour la production reste ouvert et dépend de l'hébergement.

@@ -9,7 +9,7 @@ Deux processus applicatifs seulement :
 - **senkyc-ai** — service Python/FastAPI **sans état**, limité à l'inférence et au traitement d'image.
   Aucun accès à la base ni au stockage objet ; non exposé hors du réseau interne.
 
-Infrastructure : PostgreSQL (données métier + base Keycloak), Keycloak (IAM), MinIO (objets
+Infrastructure : PostgreSQL (données métier + base Keycloak), Keycloak (IAM), RustFS (objets S3
 chiffrés : CNI, selfies). RabbitMQ n'est **pas** introduit : aucun besoin asynchrone avéré à ce stade
 (voir ADR 0003).
 
@@ -24,7 +24,7 @@ flowchart LR
         AI["senkyc-ai<br/>(FastAPI, sans état)"]
         KC[Keycloak]
         PG[(PostgreSQL)]
-        S3[(MinIO / S3)]
+        S3[(RustFS / S3)]
     end
     REG[["Registre officiel<br/>(optionnel, via SPI)"]]
 
