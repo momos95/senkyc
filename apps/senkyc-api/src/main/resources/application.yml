@@ -55,6 +55,19 @@ senkyc:
       # URL des clés de signature (peut être interne au réseau Docker).
       jwk-set-uri: ${SENKYC_JWT_JWK_SET_URI:http://localhost:8081/realms/senkyc/protocol/openid-connect/certs}
       audience: ${SENKYC_JWT_AUDIENCE:senkyc-api}
+  storage:
+    # Désactivé par défaut. Activé : serveur S3 joignable et clés valides exigés au démarrage.
+    enabled: ${SENKYC_STORAGE_ENABLED:false}
+    s3:
+      endpoint: ${SENKYC_STORAGE_S3_ENDPOINT:http://localhost:9000}
+      region: ${SENKYC_STORAGE_S3_REGION:us-east-1}
+      bucket: ${SENKYC_STORAGE_S3_BUCKET:senkyc-documents}
+      # Pas de valeur par défaut pour les secrets.
+      access-key: ${SENKYC_STORAGE_S3_ACCESS_KEY}
+      secret-key: ${SENKYC_STORAGE_S3_SECRET_KEY}
+    encryption:
+      current-key-id: ${SENKYC_STORAGE_ENCRYPTION_CURRENT_KEY_ID}
+      # Clés base64 de 32 octets : variables SENKYC_STORAGE_ENCRYPTION_KEYS_<ID> (ID en minuscules : k1...).
   ai:
     base-url: ${SENKYC_AI_BASE_URL:http://localhost:8000}
     # Pas de valeur par défaut : secret partagé avec le service IA.

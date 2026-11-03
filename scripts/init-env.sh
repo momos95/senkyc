@@ -11,6 +11,7 @@ if [ ! -e .env ]; then
   while IFS= read -r line; do
     case "$line" in
       *=change-me) printf '%s=%s\n' "${line%%=*}" "$(openssl rand -hex 24)" ;;
+      *=change-me-base64) printf '%s=%s\n' "${line%%=*}" "$(openssl rand -base64 32)" ;;
       *) printf '%s\n' "$line" ;;
     esac
   done < .env.example > .env
@@ -27,6 +28,7 @@ while IFS= read -r line; do
   if ! grep -q "^${key}=" .env; then
     case "$line" in
       *=change-me) value="$(openssl rand -hex 24)" ;;
+      *=change-me-base64) value="$(openssl rand -base64 32)" ;;
       *) value="${line#*=}" ;;
     esac
     printf '%s=%s\n' "$key" "$value" >> .env

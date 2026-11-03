@@ -17,7 +17,22 @@
 
     <properties>
         <archunit.version>1.3.0</archunit.version>
+        <!-- 2.28.x : avant le calcul de checksum par défaut (CRC32) que les serveurs S3 tiers peuvent refuser.
+             Version non résolue depuis l'environnement de rédaction : à confirmer au premier build. -->
+        <awssdk.version>2.28.29</awssdk.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${awssdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -47,6 +62,17 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
+        </dependency>
+        <!-- Client S3 (protocole compatible RustFS et autres) : uniquement le module S3 et le client HTTP Apache. -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>

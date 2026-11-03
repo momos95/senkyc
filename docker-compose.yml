@@ -102,6 +102,14 @@ services:
       SENKYC_MIGRATION_DB_PASSWORD: ${POSTGRES_PASSWORD:?Lancer ./scripts/init-env.sh}
       # Contexte "dev" : applique aussi les tenants de démonstration (jamais en production).
       SENKYC_LIQUIBASE_CONTEXTS: prod,dev
+      # Stockage chiffré : désactivé par défaut. Pour l'activer : docker compose --profile storage up -d
+      # avec SENKYC_STORAGE_ENABLED=true dans l'environnement. Activé, l'API refuse de démarrer sans serveur S3.
+      SENKYC_STORAGE_ENABLED: ${SENKYC_STORAGE_ENABLED:-false}
+      SENKYC_STORAGE_S3_ENDPOINT: http://rustfs:9000
+      SENKYC_STORAGE_S3_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-}
+      SENKYC_STORAGE_S3_SECRET_KEY: ${STORAGE_SECRET_KEY:-}
+      SENKYC_STORAGE_ENCRYPTION_CURRENT_KEY_ID: k1
+      SENKYC_STORAGE_ENCRYPTION_KEYS_K1: ${STORAGE_ENCRYPTION_KEY_K1:-}
       SENKYC_JWT_ISSUER: http://localhost:8081/realms/senkyc
       SENKYC_JWT_JWK_SET_URI: http://keycloak:8080/realms/senkyc/protocol/openid-connect/certs
       SENKYC_AI_BASE_URL: http://senkyc-ai:8000

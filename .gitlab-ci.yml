@@ -52,6 +52,7 @@ compose-config:
     SENKYC_APP_DB_PASSWORD: ci
     STORAGE_ACCESS_KEY: ci
     STORAGE_SECRET_KEY: ci
+    STORAGE_ENCRYPTION_KEY_K1: ci
     SENKYC_AI_INTERNAL_TOKEN: ci
   script:
     - docker compose config --quiet

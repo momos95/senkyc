@@ -42,4 +42,12 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage("..adapter.out..");
+
+    @ArchTest
+    static final ArchRule storagePortIsProviderNeutral = noClasses()
+            .that()
+            .resideInAPackage("sn.senkyc.api.storage.application..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("software.amazon..", "org.springframework..");
 }
