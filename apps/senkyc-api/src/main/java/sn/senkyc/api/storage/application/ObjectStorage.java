@@ -8,6 +8,9 @@ import java.util.Optional;
  */
 public interface ObjectStorage {
 
+    /** Nom du conteneur (bucket) où sont écrits les objets : conservé avec les métadonnées. */
+    String location();
+
     void put(String objectKey, byte[] content);
 
     Optional<byte[]> get(String objectKey);

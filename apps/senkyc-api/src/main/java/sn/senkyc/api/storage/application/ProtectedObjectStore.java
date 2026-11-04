@@ -25,6 +25,11 @@ public class ProtectedObjectStore {
         this.cipher = cipher;
     }
 
+    /** Conteneur de stockage sous-jacent (pour les métadonnées). */
+    public String location() {
+        return storage.location();
+    }
+
     public StoredObjectRef store(UUID tenantId, UUID verificationId, byte[] plaintext) {
         Objects.requireNonNull(tenantId, "tenantId");
         Objects.requireNonNull(verificationId, "verificationId");

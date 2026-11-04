@@ -22,6 +22,11 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  servlet:
+    multipart:
+      # Doit rester >= senkyc.verification.documents.max-bytes (8 Mio par défaut).
+      max-file-size: 8MB
+      max-request-size: 9MB
 
 server:
   port: 8080

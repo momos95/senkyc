@@ -60,6 +60,17 @@ puis `GET /api/v1/admin/tenants`. Le jeton partenaire doit y recevoir 403.
 
 Pour voir le détail des composants, démarrer l'API avec `SENKYC_HEALTH_DETAILS=always` (jamais en production).
 
+### Vérifications (API)
+
+| Méthode | Chemin | Rôle |
+|---|---|---|
+| POST | `/api/v1/verifications` | crée une demande (`Idempotency-Key` optionnelle) |
+| POST | `/api/v1/verifications/{id}/documents` | envoie une image (multipart `part` + `file`, JPEG/PNG) |
+| GET | `/api/v1/verifications/{id}` | statut et métadonnées |
+
+L'envoi d'images exige le stockage chiffré (`SENKYC_STORAGE_ENABLED=true` et `docker compose --profile storage up -d`) ;
+sinon l'API répond `503`. Détails et limites : ADR 0011.
+
 ## Développer sans Docker (API + service IA)
 
 Prérequis : un PostgreSQL local (créer la base, le rôle propriétaire `senkyc` pour les migrations et un

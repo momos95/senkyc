@@ -55,6 +55,11 @@ public class S3ObjectStorage implements ObjectStorage {
     }
 
     @Override
+    public String location() {
+        return bucket;
+    }
+
+    @Override
     public void put(String objectKey, byte[] content) {
         try {
             client.putObject(

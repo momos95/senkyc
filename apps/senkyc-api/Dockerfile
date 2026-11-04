@@ -15,4 +15,5 @@ USER 10001
 EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=3s --start-period=40s --retries=5 \
   CMD wget -q --spider http://127.0.0.1:8080/actuator/health/liveness || exit 1
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]
+# headless : l'API lit les en-têtes d'images (ImageIO) sans jamais initialiser d'interface graphique.
+ENTRYPOINT ["java", "-Djava.awt.headless=true", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]

@@ -17,6 +17,11 @@ class ProtectedObjectStoreTest {
         final Map<String, byte[]> objects = new HashMap<>();
 
         @Override
+        public String location() {
+            return "memory";
+        }
+
+        @Override
         public void put(String objectKey, byte[] content) {
             objects.put(objectKey, content.clone());
         }

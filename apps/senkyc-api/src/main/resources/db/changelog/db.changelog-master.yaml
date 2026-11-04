@@ -6,4 +6,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/003-document-scope-and-entitlements.sql
   - include:
+      file: db/changelog/changes/004-stored-object-part-uniqueness.sql
+  - include:
       file: db/changelog/changes/900-dev-seed.sql
