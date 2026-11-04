@@ -16,13 +16,9 @@ class ScopeTest {
     }
 
     @Test
-    void countriesAreTheEightUemoaMembersAndOnlySenegalIsEnabled() {
+    void countriesAreTheEightUemoaMembers() {
         assertThat(Arrays.stream(IssuingCountry.values()).map(Enum::name))
                 .containsExactlyInAnyOrder("SN", "BJ", "BF", "CI", "GW", "ML", "NE", "TG");
-        assertThat(Arrays.stream(IssuingCountry.values())
-                        .filter(IssuingCountry::isEnabled)
-                        .map(Enum::name))
-                .isEqualTo(java.util.List.of("SN"));
     }
 
     @Test

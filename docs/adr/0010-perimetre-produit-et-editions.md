@@ -5,9 +5,34 @@
 ## Périmètre
 - **Documents** : carte nationale d'identité (CNI), passeport, permis de conduire. Aucun autre document.
 - **Pays** : Sénégal d'abord, puis les États de l'UEMOA (BJ, BF, CI, GW, ML, NE, SN, TG).
-  Le schéma accepte les 8 pays (`verification.issuing_country`) ; l'énumération `IssuingCountry` n'active que
-  `SN`. Ouvrir un pays suppose d'avoir écrit et testé ses règles de documents : aucune règle n'est
+  Le schéma accepte les 8 pays (`verification.issuing_country`) ; un pays n'est actif que s'il est configuré
+  (section suivante). Ouvrir un pays suppose d'avoir écrit et testé ses règles de documents : aucune règle n'est
   supposée identique d'un pays à l'autre.
+
+## Configuration par pays
+Un pays est actif s'il figure dans `senkyc.countries` avec `enabled: true`. Pour chaque pays actif, on indique,
+par type de document, le connecteur de vérification d'intégrité :
+
+```yaml
+senkyc:
+  countries:
+    SN:
+      enabled: true
+      documents:
+        NATIONAL_ID: { connector: <identifiant-du-connecteur> }   # absent = KYC commun seulement
+```
+
+- Type de document sans connecteur → **pas de contrôle d'intégrité** : seules les fonctions communes
+  du KYC s'appliquent (résultat maximal `APPROVED_TECHNICAL`).
+- Pays absent ou `enabled: false` → vérifications refusées pour ce pays.
+- Au démarrage, la configuration est validée (fail-fast) : pays ou document inconnu, connecteur introuvable,
+  identifiant en double, connecteur qui ne déclare pas gérer le pays → l'API ne démarre pas.
+- Un connecteur n'est appelé que si le tenant y a droit (`RegistryRouter`). Les paramètres propres à un
+  connecteur (adresse du service, identifiants) appartiennent à ce connecteur et viennent de l'environnement.
+- État actuel : aucun connecteur n'est fourni ; `SN` est activé sans document. Le routage est écrit et testé,
+  mais aucun appel de connecteur n'est encore fait par un parcours métier.
+- Clé de document en variable d'environnement : les noms contenant `_` (NATIONAL_ID) s'écrivent mal ainsi ;
+  utiliser un fichier de configuration (par exemple `SPRING_CONFIG_IMPORT`).
 
 ## Éditions
 - **Gratuite** : contrôles techniques (cohérence, OCR, face matching, liveness). **Sans** contrôle d'intégrité

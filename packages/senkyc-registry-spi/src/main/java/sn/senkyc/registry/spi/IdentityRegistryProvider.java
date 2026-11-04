@@ -15,7 +15,10 @@ public interface IdentityRegistryProvider {
     /** Identifiant stable du fournisseur (ex. {@code "noop"}, {@code "mock"}). */
     String providerId();
 
-    /** Indique si ce fournisseur sait traiter le pays donné (code ISO 3166-1 alpha-2). */
+    /**
+     * Indique si ce fournisseur sait traiter le pays donné (code ISO 3166-1 alpha-2). Le choix du fournisseur
+     * pour un pays et un type de document est fait par la configuration de l'API (senkyc.countries).
+     */
     boolean supports(String countryCode);
 
     RegistryVerificationResult verify(RegistryVerificationRequest request);

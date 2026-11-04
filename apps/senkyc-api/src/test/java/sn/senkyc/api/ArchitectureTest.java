@@ -44,6 +44,14 @@ class ArchitectureTest {
             .resideInAPackage("..adapter.out..");
 
     @ArchTest
+    static final ArchRule registryRoutingIsFrameworkFree = noClasses()
+            .that()
+            .resideInAPackage("sn.senkyc.api.registry.application..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("org.springframework..", "jakarta..");
+
+    @ArchTest
     static final ArchRule storagePortIsProviderNeutral = noClasses()
             .that()
             .resideInAPackage("sn.senkyc.api.storage.application..")

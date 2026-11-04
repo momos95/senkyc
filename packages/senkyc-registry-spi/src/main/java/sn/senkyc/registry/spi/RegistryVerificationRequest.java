@@ -11,15 +11,18 @@ import java.util.regex.Pattern;
  */
 public record RegistryVerificationRequest(
         String countryCode,
+        String documentType,
         String documentNumber,
         String lastName,
         String firstName,
         LocalDate birthDate) {
 
     private static final Pattern ISO_ALPHA2 = Pattern.compile("^[A-Za-z]{2}$");
+    private static final Pattern DOCUMENT_TYPE = Pattern.compile("^[A-Z][A-Z_]{1,31}$");
 
     public RegistryVerificationRequest {
         Objects.requireNonNull(countryCode, "countryCode");
+        Objects.requireNonNull(documentType, "documentType");
         Objects.requireNonNull(documentNumber, "documentNumber");
         Objects.requireNonNull(lastName, "lastName");
         Objects.requireNonNull(firstName, "firstName");
@@ -27,11 +30,15 @@ public record RegistryVerificationRequest(
         if (!ISO_ALPHA2.matcher(countryCode).matches()) {
             throw new IllegalArgumentException("countryCode must be an ISO 3166-1 alpha-2 code");
         }
+        if (!DOCUMENT_TYPE.matcher(documentType).matches()) {
+            throw new IllegalArgumentException("documentType must be an upper-case identifier (e.g. NATIONAL_ID)");
+        }
         countryCode = countryCode.toUpperCase(Locale.ROOT);
     }
 
     @Override
     public String toString() {
-        return "RegistryVerificationRequest[countryCode=" + countryCode + ", personalData=<redacted>]";
+        return "RegistryVerificationRequest[countryCode=" + countryCode + ", documentType=" + documentType
+                + ", personalData=<redacted>]";
     }
 }

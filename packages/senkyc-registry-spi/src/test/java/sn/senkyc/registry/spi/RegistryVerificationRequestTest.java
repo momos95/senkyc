@@ -13,7 +13,7 @@ class RegistryVerificationRequestTest {
     private static final String DOC = "TEST-0000001";
 
     private static RegistryVerificationRequest request(String country) {
-        return new RegistryVerificationRequest(country, DOC, "Ndiaye", "Fatou", LocalDate.of(1990, 1, 2));
+        return new RegistryVerificationRequest(country, "NATIONAL_ID", DOC, "Ndiaye", "Fatou", LocalDate.of(1990, 1, 2));
     }
 
     @Test
@@ -35,8 +35,15 @@ class RegistryVerificationRequestTest {
     }
 
     @Test
+    void rejectsMalformedDocumentType() {
+        assertThatThrownBy(() -> new RegistryVerificationRequest(
+                        "SN", "national id", DOC, "Ndiaye", "Fatou", LocalDate.of(1990, 1, 2)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void rejectsMissingFields() {
         assertThatNullPointerException()
-                .isThrownBy(() -> new RegistryVerificationRequest("SN", null, "Ndiaye", "Fatou", LocalDate.of(1990, 1, 2)));
+                .isThrownBy(() -> new RegistryVerificationRequest("SN", "NATIONAL_ID", null, "Ndiaye", "Fatou", LocalDate.of(1990, 1, 2)));
     }
 }

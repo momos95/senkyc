@@ -55,6 +55,15 @@ senkyc:
       # URL des clés de signature (peut être interne au réseau Docker).
       jwk-set-uri: ${SENKYC_JWT_JWK_SET_URI:http://localhost:8081/realms/senkyc/protocol/openid-connect/certs}
       audience: ${SENKYC_JWT_AUDIENCE:senkyc-api}
+  # Pays activés. Un pays absent est refusé. Pour chaque pays activé :
+  #   documents : type de document (NATIONAL_ID, PASSPORT, DRIVING_LICENSE) -> identifiant du connecteur
+  #               de vérification d'intégrité. Type absent = pas de contrôle d'intégrité (KYC commun seulement).
+  # Un connecteur n'est appelé que si le tenant y a droit (tenant.official_verification_enabled). Aucun
+  # connecteur n'est fourni par défaut : voir docs/adr/0010-perimetre-produit-et-editions.md.
+  countries:
+    SN:
+      enabled: true
+      documents: {}
   storage:
     # Désactivé par défaut. Activé : serveur S3 joignable et clés valides exigés au démarrage.
     enabled: ${SENKYC_STORAGE_ENABLED:false}
