@@ -4,7 +4,14 @@ import java.time.Instant;
 import java.util.UUID;
 import sn.senkyc.api.tenant.domain.Tenant;
 
-record TenantResponse(UUID id, String code, String name, String status, int retentionDays, Instant createdAt) {
+record TenantResponse(
+        UUID id,
+        String code,
+        String name,
+        String status,
+        int retentionDays,
+        boolean officialVerificationEnabled,
+        Instant createdAt) {
 
     static TenantResponse from(Tenant tenant) {
         return new TenantResponse(
@@ -13,6 +20,7 @@ record TenantResponse(UUID id, String code, String name, String status, int rete
                 tenant.name(),
                 tenant.status().name(),
                 tenant.retentionDays(),
+                tenant.officialVerificationEnabled(),
                 tenant.createdAt());
     }
 }

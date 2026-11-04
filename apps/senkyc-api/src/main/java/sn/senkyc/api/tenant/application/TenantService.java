@@ -39,6 +39,7 @@ public class TenantService {
                 command.name(),
                 TenantStatus.ACTIVE,
                 retention,
+                false,
                 Instant.now(clock));
         return repository.create(tenant);
     }

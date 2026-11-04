@@ -1,14 +1,18 @@
 # SenKYC — Senegal Know Your Customer 🇸🇳
 
 Plateforme KYC open source, modulaire et auto-hébergeable pour vérifier **techniquement** une
-identité au Sénégal (CNI : capture, OCR, cohérence, face matching, liveness).
+identité à partir de **trois documents : CNI, passeport et permis de conduire** (capture, OCR, cohérence,
+face matching, liveness). Périmètre : **Sénégal d'abord, puis l'espace UEMOA** (voir ADR 0010).
+
+**Édition gratuite** : sans contrôle d'intégrité auprès des services officiels (connecteurs). Ce contrôle est
+un droit accordé par tenant ; sans lui, le meilleur résultat possible est `APPROVED_TECHNICAL`.
 
 > **Important.** Sans accès à un registre officiel autorisé, SenKYC ne certifie pas qu'une identité
 > est authentique. Le statut `VERIFIED_OFFICIAL` n'est possible qu'avec une réponse positive d'un
 > connecteur officiel réellement autorisé ; sinon le meilleur résultat est `APPROVED_TECHNICAL`.
 > La conformité réglementaire (données personnelles, biométrie) n'est pas acquise par les seules mesures techniques.
 
-**État : semaine 1 / 12 — socle technique uniquement.** Aucune fonctionnalité KYC n'est encore implémentée.
+**État : semaine 3 / 12 en cours** — socle, authentification multi-tenant (RLS) et stockage chiffré. Aucune vérification KYC n'est encore implémentée.
 
 ## Prérequis
 

@@ -31,6 +31,7 @@ class TenantServiceTest {
 
         assertThat(tenant.status()).isEqualTo(TenantStatus.ACTIVE);
         assertThat(tenant.retentionDays()).isEqualTo(TenantService.DEFAULT_RETENTION_DAYS);
+        assertThat(tenant.officialVerificationEnabled()).isFalse();
         assertThat(tenant.createdAt()).isEqualTo(NOW);
         assertThat(repository.findById(tenant.id())).contains(tenant);
     }

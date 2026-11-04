@@ -20,7 +20,7 @@ import sn.senkyc.api.tenant.domain.TenantStatus;
 @Repository
 class JdbcTenantRepository implements TenantRepository {
 
-    private static final String COLUMNS = "id, code, name, status, retention_days, created_at";
+    private static final String COLUMNS = "id, code, name, status, retention_days, official_verification_enabled, created_at";
 
     private static final RowMapper<Tenant> MAPPER = JdbcTenantRepository::map;
 
@@ -41,13 +41,14 @@ class JdbcTenantRepository implements TenantRepository {
     @Override
     public Tenant create(Tenant tenant) {
         try {
-            jdbc.sql("insert into tenant (id, code, name, status, retention_days, created_at)"
-                            + " values (:id, :code, :name, :status, :retention, :createdAt)")
+            jdbc.sql("insert into tenant (id, code, name, status, retention_days, official_verification_enabled,"
+                            + " created_at) values (:id, :code, :name, :status, :retention, :official, :createdAt)")
                     .param("id", tenant.id())
                     .param("code", tenant.code())
                     .param("name", tenant.name())
                     .param("status", tenant.status().name())
                     .param("retention", tenant.retentionDays())
+                    .param("official", tenant.officialVerificationEnabled())
                     .param("createdAt", OffsetDateTime.ofInstant(tenant.createdAt(), ZoneOffset.UTC))
                     .update();
         } catch (DuplicateKeyException e) {
@@ -77,6 +78,7 @@ class JdbcTenantRepository implements TenantRepository {
                 rs.getString("name"),
                 TenantStatus.valueOf(rs.getString("status")),
                 rs.getInt("retention_days"),
+                rs.getBoolean("official_verification_enabled"),
                 rs.getObject("created_at", OffsetDateTime.class).toInstant());
     }
 }

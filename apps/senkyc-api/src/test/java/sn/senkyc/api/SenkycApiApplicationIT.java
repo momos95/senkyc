@@ -172,6 +172,39 @@ class SenkycApiApplicationIT {
     }
 
     @Test
+    void databaseAcceptsTheThreeDocumentTypesAndRejectsOthers() {
+        UUID tenant = insertTenant("doc-types");
+
+        insertVerificationWith(tenant, "NATIONAL_ID", "SN");
+        insertVerificationWith(tenant, "PASSPORT", "SN");
+        insertVerificationWith(tenant, "DRIVING_LICENSE", "SN");
+
+        assertThatThrownBy(() -> insertVerificationWith(tenant, "VOTER_CARD", "SN"))
+                .isInstanceOf(DataAccessException.class);
+    }
+
+    @Test
+    void databaseAcceptsUemoaCountriesAndRejectsOthers() {
+        UUID tenant = insertTenant("countries");
+
+        for (String country : List.of("SN", "BJ", "BF", "CI", "GW", "ML", "NE", "TG")) {
+            insertVerificationWith(tenant, "NATIONAL_ID", country);
+        }
+
+        assertThatThrownBy(() -> insertVerificationWith(tenant, "NATIONAL_ID", "FR"))
+                .isInstanceOf(DataAccessException.class);
+    }
+
+    @Test
+    void officialVerificationIsDisabledByDefaultForNewTenants() {
+        UUID tenant = insertTenant("free-edition");
+
+        assertThat(owner.queryForObject(
+                        "select official_verification_enabled from tenant where id = ?", Boolean.class, tenant))
+                .isFalse();
+    }
+
+    @Test
     void databaseRejectsStoredObjectLinkedToAnotherTenantsVerification() {
         UUID tenantA = insertTenant("tenant-a");
         UUID tenantB = insertTenant("tenant-b");
@@ -207,7 +240,8 @@ class SenkycApiApplicationIT {
 
         assertThat(app.queryForObject("select count(*) from verification", Long.class)).isZero();
         assertThatThrownBy(() -> app.update(
-                        "insert into verification (id, tenant_id, status, expires_at) values (?, ?, 'PENDING', ?)",
+                        "insert into verification (id, tenant_id, status, expires_at, document_type, issuing_country)"
+                                + " values (?, ?, 'PENDING', ?, 'NATIONAL_ID', 'SN')",
                         UUID.randomUUID(), tenant, OffsetDateTime.now().plusHours(1)))
                 .isInstanceOf(DataAccessException.class);
     }
@@ -218,7 +252,8 @@ class SenkycApiApplicationIT {
         UUID tenantB = insertTenant("write-b");
 
         assertThatThrownBy(() -> TenantContext.runAs(tenantA, () -> app.update(
-                        "insert into verification (id, tenant_id, status, expires_at) values (?, ?, 'PENDING', ?)",
+                        "insert into verification (id, tenant_id, status, expires_at, document_type, issuing_country)"
+                                + " values (?, ?, 'PENDING', ?, 'NATIONAL_ID', 'SN')",
                         UUID.randomUUID(), tenantB, OffsetDateTime.now().plusHours(1))))
                 .isInstanceOf(DataAccessException.class);
     }
@@ -315,8 +350,16 @@ class SenkycApiApplicationIT {
 
     private void insertVerification(UUID tenantId, UUID id, String status) {
         owner.update(
-                "insert into verification (id, tenant_id, status, expires_at) values (?, ?, ?, ?)",
+                "insert into verification (id, tenant_id, status, expires_at, document_type, issuing_country)"
+                        + " values (?, ?, ?, ?, 'NATIONAL_ID', 'SN')",
                 id, tenantId, status, OffsetDateTime.now().plusHours(1));
+    }
+
+    private void insertVerificationWith(UUID tenantId, String documentType, String country) {
+        owner.update(
+                "insert into verification (id, tenant_id, status, expires_at, document_type, issuing_country)"
+                        + " values (?, ?, 'PENDING', ?, ?, ?)",
+                UUID.randomUUID(), tenantId, OffsetDateTime.now().plusHours(1), documentType, country);
     }
 
     private ResponseEntity<String> get(String path, String bearer) {

@@ -4,9 +4,20 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Un client de la plateforme (banque, fintech, assurance...). Tout le reste lui est rattaché. */
+/**
+ * Un client de la plateforme (banque, fintech, assurance...). Tout le reste lui est rattaché.
+ *
+ * <p>{@code officialVerificationEnabled} : droit au contrôle d'intégrité auprès des services officiels
+ * (connecteurs). Faux dans la version gratuite.
+ */
 public record Tenant(
-        UUID id, String code, String name, TenantStatus status, int retentionDays, Instant createdAt) {
+        UUID id,
+        String code,
+        String name,
+        TenantStatus status,
+        int retentionDays,
+        boolean officialVerificationEnabled,
+        Instant createdAt) {
 
     public Tenant {
         Objects.requireNonNull(id, "id");

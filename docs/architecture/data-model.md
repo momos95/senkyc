@@ -1,6 +1,6 @@
 # Modèle de données initial
 
-Aucune donnée personnelle extraite de la CNI n'est stockée à ce stade. Les champs OCR seront ajoutés
+Aucune donnée personnelle extraite des documents (CNI, passeport, permis de conduire) n'est stockée à ce stade. Les champs OCR seront ajoutés
 (chiffrés au niveau applicatif) en semaine 4. Les images ne sont **jamais** en base : seules des
 métadonnées pointent vers l'objet chiffré dans le stockage S3 (RustFS en dev).
 

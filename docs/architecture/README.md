@@ -72,7 +72,7 @@ senkyc-parent (pom, parent = spring-boot-starter-parent)
 Pourquoi pas un module Maven par domaine : coût de build et de configuration élevé pour un seul
 déploiement. Les SDK Java/TS, le widget et la console (semaines 9-11) sont des artefacts distincts
 et seront ajoutés au moment voulu (`senkyc-java-sdk` rejoindra le reactor Maven).
-`senkyc-document-sn` (règles propres à la CNI sénégalaise) est prévu en semaine 4/5.
+Les règles propres à chaque document (CNI, passeport, permis) et à chaque pays (Sénégal, puis UEMOA) seront isolées dans des modules dédiés (`senkyc-document-sn`, etc.), semaines 4-5 : ADR 0010.
 
 ## 4. Modèle de données initial
 

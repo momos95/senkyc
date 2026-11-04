@@ -37,6 +37,7 @@ class TenantControllerTest {
             "Tenant A",
             TenantStatus.ACTIVE,
             30,
+            false,
             Instant.parse("2026-11-03T10:00:00Z"));
 
     @Autowired
